@@ -1,5 +1,5 @@
 load lidar_gauntlet.mat
-%robustLineFit(r, theta, 0.25, 20, 1)
+robustLineFit(r, theta , 0.25, 20, 1)
 
 %location of objects with respect to LIDAR frame L
 %row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
