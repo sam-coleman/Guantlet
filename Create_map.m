@@ -1,10 +1,23 @@
 load lidar_gauntlet.mat
 %robustLineFit(r, theta, 0.25, 20, 1)
-ransac(r, theta, .25, 20, 1)
-
+[bestInlierSet, bestEndPoints] = ransac(r, theta, .1, 20, 1)
+%Plotting line between two random points
+hold on
+%plot([x1(p1),y1(p1)],[x1(p2),y1(p2)])
+%plot(x, line(1)*x + line(2));
+figure(3)
+plot(bestInlierSet(:,1), bestInlierSet(:,2), 'ks')
+hold on
+plot(bestOutlierSet(:,1),bestOutlierSet(:,2),'bs')
+plot(bestEndPoints(:,1), bestEndPoints(:,2), 'r')
+plot(x1,y1,'ks')
+axis equal
+xlim([-1.5, 2.5])
+ylim([-3.5, 2.0])
+hold off
 
 %our ransac algorithm
-function [fitline_coefs, bestInlierSet, bestOuttlierSet, bestEndPoints] = ransac(r, theta, d, n, visualize)
+function [bestInlierSet, bestEndPoints] = ransac(r, theta, d, n, visualize)
 %function runs the RANSAC algorithm for n candidate lines and a threshold of d. The inputs r and
 %theta are polar coordinates. The output fitline_coefs are the coefficients
 %of the best fit line in the format [m b] where y=m*x+b. If you want
@@ -35,23 +48,93 @@ r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
 r_G = T_GN * R_GN * r_N_pos;
 r_G = r_G(1:2, :);
     
-% %Plot the map!!
-% figure(), clf
-% hold on
-% plot(r_N_pos1(1, :), r_N_pos1(2, :), '*')
-% title('Map of Gauntlet')
-% xlabel('Distance (m)')
-% ylabel('Distance (m)')
-% hold off
-
 if ~exist('visualize','var')
     % visualize parameter does not exist, so default it to 1
     visualize = 1;
 end
 
+%plot it!
 figure()
 plot(r_G(1, :),r_G(2,:), '*')
+title('Map of Gauntlet')
+xlabel('Distance (m)')
+ylabel('Distance (m)')
+
+inlier = 0;
+outlier = 0;
+x1 = r_G(1, :);
+y1 = r_G(2, :);
+points = [x1; y1];
+
+bestcandidates = [];
+bestInlierSet = zeros(0,2);
+bestOutlierSet = zeros(0,2);
+bestEndPoints = zeros(0,2);
+
+figure  
+for i = 1:n
+    
+    p1 = randi([1 length(r_G)]);
+    p2 = randi([1 length(r_G)]);
+    while p1 == p2  %Make sure the two points are not randomly the same value
+        p2 = randi([1 length(r_G)]);
+    end
+    candidates = [x1(p1) x1(p2); y1(p1) y1(p2)];
+    line = inv([x1(p1) 1;x1(p2) 1])*[y1(p1);y1(p2)];
+    v = (candidates(1,:)-candidates(2,:))';
+    x = linspace(-1.5,2.5);
+    
+
+    %adapted from professors sample algorithm
+    %Determine whether points are outliers, we need to know the
+    %perpendicular distance away from the candidate fit line. To do this,
+    %we first need to define the perpendicular, or orthogonal, direction.
+    %%orthv= [-v(2); v(1)];
+    orthv = [-x1(p1); x1(p2)];
+    orthv_unit=orthv/norm(orthv); %make this a unit vector
+    
+    %Here, we are finding the distance of each scan point from one of the
+    %endpoints of our candidate line. At this point this is not the
+    %distance perpendicular to the candidate line.
+    diffs = points - candidates(:,2);
+    
+    %Next, we need to project the difference vectors above onto the
+    %perpendicular direction in 'orthv_unit'. This will give us the
+    %orthogonal distances from the canidate fit line.
+    orthdists=diffs'*orthv_unit;
+    
+    %To identify inliers, we will look for points at a perpendicular
+    %distance from the candidate fit line less than the threshold value.
+    %The output will be a logic array, with a 1 if the statement is true
+    %and 0 if false.
+    inliers=abs(orthdists) < d;
+    
+    %we also want to check that there are no big gaps in our walls. To do
+    %this, we are first taking the distance of each inlier away from an
+    %endpoint (diffs) and projecting onto the best fit direction. We then
+    %sort these from smallest to largest and take difference to find the
+    %spacing between adjacent points. We then identify the maximum gap.
+    %biggestGap = max(diff(sort(diffs(inliers,:)*v/norm(v))));
+    
+    %Now, we check if the number of inliers is greater than the best we
+    %have found. If so, the candidate line is our new best candidate. We
+    %also make sure there are no big gaps.
+    %if biggestGap < 0.2  && sum(inliers) > size(bestInlierSet,1)
+%          if sum(inliers) > size(bestInlierSet,1)
+        bestInlierSet=points(:,inliers); %points where logical array is true
+        bestOutlierSet = points(:, ~inliers); %points where logical array is not true
+        bestcandidates=candidates;
+        
+        %these two lines find a nice set of endpoints for plotting the best
+        %fit line
+        projectedCoordinate = diffs(:, inliers)'*v/norm(v);
+        bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1]);
+    end
+    %end adapted from professors sample algorithm
+   
 end
+
+
 
 %This function has been provided to us by course instructors
 function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= robustLineFit(r,theta,d,n,visualize)

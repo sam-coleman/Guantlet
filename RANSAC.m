@@ -23,7 +23,7 @@ num_test_lines = 10;  %Number of random combinations to test
 d = 0.5;
 num_pts = length(r_clean);
 
-inlier = 0
+inlier = 0;
 outlier = 0;
 
 figure  
