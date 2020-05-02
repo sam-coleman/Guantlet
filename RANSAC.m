@@ -23,7 +23,7 @@ num_test_lines = 10;  %Number of random combinations to test
 d = 0.5;
 num_pts = length(r_clean);
 
-inlier = 0
+inlier = 0;
 outlier = 0;
 
 figure  
@@ -48,5 +48,5 @@ hold off
     outlier_now = 0;
     slope_p = -1/line(1);
     for j = 1:length(r_clean)
-        d_now = abs(slope_p*x1(p1)+(-1*y1(p
+        %d_now = abs(slope_p*x1(p1)+(-1*y1(p
     end
