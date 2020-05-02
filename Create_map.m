@@ -1,6 +1,35 @@
 load lidar_gauntlet.mat
 %robustLineFit(r, theta, 0.25, 20, 1)
-[bestInlierSet, bestEndPoints] = ransac(r, theta, .1, 20, 1)
+
+index=find(r~=0 & r<3);
+r_clean=r(index);
+theta_clean=theta(index);
+
+%location of objects with respect to LIDAR frame L
+%row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
+r_L = [r_clean(:,:).*cos(theta_clean(:,:)), r_clean(:,:).*sin(theta_clean(:,:))]';
+
+%location of objects with respect to Neato frame N
+%need to subtract .084 from rows 1-4 of r_L and keep rows 5-8 the same
+r_N = [r_L(:, :) - .084; r_L(:, :)];
+
+%Translation Matrix to go from Neato Frame to Global Frame
+T_GN = [1 0 0; 0 1 0; 0 0 1];
+    
+%Rotation Matrix to go from Neato Frame to Global Frame
+R_GN = [1 0 0; 0 1 0; 0 0 1];
+   
+%assign the position matrix to use and do the transformation to make
+%Neato Frame into Global Frame
+r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
+r_G = T_GN * R_GN * r_N_pos;
+r_G = r_G(1:2, :);
+
+x1 = r_G(1, :);
+y1 = r_G(2, :);
+points = [x1; y1];
+
+[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(r, theta, .05, 40, 1)
 %Plotting line between two random points
 hold on
 %plot([x1(p1),y1(p1)],[x1(p2),y1(p2)])
@@ -121,14 +150,14 @@ for i = 1:n
     %also make sure there are no big gaps.
     %if biggestGap < 0.2  && sum(inliers) > size(bestInlierSet,1)
 %          if sum(inliers) > size(bestInlierSet,1)
-        bestInlierSet=points(:,inliers); %points where logical array is true
-        bestOutlierSet = points(:, ~inliers); %points where logical array is not true
-        bestcandidates=candidates;
-        
-        %these two lines find a nice set of endpoints for plotting the best
-        %fit line
-        projectedCoordinate = diffs(:, inliers)'*v/norm(v);
-        bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1]);
+    bestInlierSet=points(:,inliers); %points where logical array is true
+    bestOutlierSet = points(:, ~inliers); %points where logical array is not true
+    bestcandidates=candidates;
+
+    %these two lines find a nice set of endpoints for plotting the best
+    %fit line
+    projectedCoordinate = diffs(:, inliers)'*v/norm(v);
+    bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1]);
     end
     %end adapted from professors sample algorithm
 
