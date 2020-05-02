@@ -1,5 +1,5 @@
 load lidar_gauntlet.mat
-%robustLineFit(r, theta, 0.25, 20, 1)
+robustLineFit(r, theta , 0.25, 20, 1)
 
 index=find(r~=0 & r<3);
 r_clean=r(index);
