@@ -1,14 +1,27 @@
 load lidar_gauntlet.mat
 %robustLineFit(r, theta, 0.25, 20, 1)
+ransac(r, theta, .25, 20, 1)
+
+
+%our ransac algorithm
+function [fitline_coefs, bestInlierSet, bestOuttlierSet, bestEndPoints] = ransac(r, theta, d, n, visualize)
+%function runs the RANSAC algorithm for n candidate lines and a threshold of d. The inputs r and
+%theta are polar coordinates. The output fitline_coefs are the coefficients
+%of the best fit line in the format [m b] where y=m*x+b. If you want
+%to visualize, set visualize flag to 1, off is 0. Default is true.
+
+%eliminate zeros
+index=find(r~=0 & r<3);
+r_clean=r(index);
+theta_clean=theta(index);
 
 %location of objects with respect to LIDAR frame L
 %row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
-r_L = [r(:,:).*cos(theta(:,:)), r(:,:).*sin(theta(:,:))]';
+r_L = [r_clean(:,:).*cos(theta_clean(:,:)), r_clean(:,:).*sin(theta_clean(:,:))]';
 
 %location of objects with respect to Neato frame N
 %need to subtract .084 from rows 1-4 of r_L and keep rows 5-8 the same
 r_N = [r_L(:, :) - .084; r_L(:, :)];
-
 
 %Translation Matrix to go from Neato Frame to Global Frame
 T_GN = [1 0 0; 0 1 0; 0 0 1];
@@ -18,18 +31,27 @@ R_GN = [1 0 0; 0 1 0; 0 0 1];
    
 %assign the position matrix to use and do the transformation to make
 %Neato Frame into Global Frame
-r_N_pos = [r_N(1, :); r_N(2, :); ones(1, 360)];
-r_N_pos1 = T_GN * R_GN * r_N_pos;
-r_N_pos1 = r_N_pos1(1:2, :);
+r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
+r_G = T_GN * R_GN * r_N_pos;
+r_G = r_G(1:2, :);
     
-%Plot the map!!
-figure(), clf
-hold on
-plot(r_N_pos1(1, :), r_N_pos1(2, :), '*')
-title('Map of Gauntlet')
-xlabel('Distance (m)')
-ylabel('Distance (m)')
-hold off
+% %Plot the map!!
+% figure(), clf
+% hold on
+% plot(r_N_pos1(1, :), r_N_pos1(2, :), '*')
+% title('Map of Gauntlet')
+% xlabel('Distance (m)')
+% ylabel('Distance (m)')
+% hold off
+
+if ~exist('visualize','var')
+    % visualize parameter does not exist, so default it to 1
+    visualize = 1;
+end
+
+figure()
+plot(r_G(1, :),r_G(2,:), '*')
+end
 
 %This function has been provided to us by course instructors
 function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= robustLineFit(r,theta,d,n,visualize)
@@ -59,7 +81,6 @@ points=[x,y];
  bestOutlierSet = zeros(0,2);
  bestEndPoints = zeros(0,2);
 for k=1:n %number of candidate lines to try
-    
     
     %select two points at random using the 'datasample' function to define
     %the endpoints of the first candidate fit line
