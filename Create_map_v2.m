@@ -1,7 +1,11 @@
+clf
+clc
+clear all
+
 load lidar_gauntlet.mat
 
 d = 0.1;
-n = 20;
+n = 100;
 visualize = 1;
 
 %[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,0.1,20,1)
@@ -80,6 +84,7 @@ r_G = r_G(1:2, :);
 x = r_G(1, :);
 y = r_G(2, :);
 points = [x; y];
+points = points';
 
 
 %now let's actually implement the RANSAC algorithm
@@ -91,7 +96,14 @@ for k=1:n %number of candidate lines to try
     
     %select two points at random using the 'datasample' function to define
     %the endpoints of the first candidate fit line
-    candidates = datasample(points, 2, 'Replace', false);
+    %candidates = datasample(points, 2, 'Replace', false);
+    
+    p1 = randi([1 length(r_G)]);
+    p2 = randi([1 length(r_G)]);
+    while p1 == p2  %Make sure the two points are not randomly the same value
+        p2 = randi([1 length(r_G)]);
+    end
+    candidates = [x1(p1) x1(p2); y1(p1) y1(p2)];
     
     %Find the vector that points from point 2 to point 1
     v=(candidates(1,:)-candidates(2,:))';
@@ -113,11 +125,12 @@ for k=1:n %number of candidate lines to try
     %endpoints of our candidate line. At this point this is not the
     %distance perpendicular to the candidate line.
     diffs = points - candidates(2,:);
+    %diffs = diffs';
     
     %Next, we need to project the difference vectors above onto the
     %perpendicular direction in 'orthv_unit'. This will give us the
     %orthogonal distances from the canidate fit line.
-    orthdists=diffs'*orthv_unit;
+    orthdists=diffs*orthv_unit;
     
     %To identify inliers, we will look for points at a perpendicular
     %distance from the candidate fit line less than the threshold value.
@@ -135,7 +148,8 @@ for k=1:n %number of candidate lines to try
     %Now, we check if the number of inliers is greater than the best we
     %have found. If so, the candidate line is our new best candidate. We
     %also make sure there are no big gaps.
-    if biggestGap < 0.2  && sum(inliers) > size(bestInlierSet,1)
+    dummy = sum(inliers)
+    if biggestGap < 0.2  && dummy > size(bestInlierSet(:,1),1)
 %          if sum(inliers) > size(bestInlierSet,1)
         bestInlierSet=points(inliers,:); %points where logical array is true
         bestOutlierSet = points(~inliers, :); %points where logical array is not true
