@@ -4,8 +4,6 @@ clear all
 
 load lidar_gauntlet.mat
 
-
-
 index=find(r~=0 & r<3);
 r_clean=r(index);
 theta_clean=theta(index);
@@ -42,9 +40,11 @@ nn = 1;
 d = 0.005;
 n = 100;
 visualize = 1;
+timesRan = 0;
 %[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r_clean,theta_clean,0.1,20,1) 
-while size(bestOutlierSet(1,:),2) > 5
-    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(x,y,d,n,visualize, r_G);
+while size(bestOutlierSet(:,1),1) > 5 || size(bestOutlierSet(1, :),2) > 5
+    nn
+    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(x,y,d,n,visualize, r_G, timesRan);
     Endpts = bestEndPoints;
     if isnan(fitline_coefs(nn,1))
        
@@ -55,7 +55,11 @@ while size(bestOutlierSet(1,:),2) > 5
     theta_clean=rad2deg(theta_clean);
     
     nn=nn+1;
-    size(bestOutlierSet(1,:),2)
+    timesRan = timesRan + 1;
+    size(bestOutlierSet(:,1),1)
+    
+   x = x - bestInlierSet(:,1);
+   y = y - bestInlierSet(:,2);
 end
 
 for kk=1:size(Endpts,3)
@@ -64,7 +68,7 @@ for kk=1:size(Endpts,3)
     ylim([-3,3])
 end
 
-function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(x, y, d, n, visualize, r_G)
+function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(x, y, d, n, visualize, r_G, timesRan)
 %This function has been provided to us by course instructors  --------
 %function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,d,n,visualize)
 %The [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= robustLineFit(r,theta,d,n) 
@@ -78,10 +82,12 @@ function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(x, 
       visualize = 1;
  end
 
+
 points = [x; y];
+
+if timesRan == 0
 points = points';
-
-
+end
 %now let's actually implement the RANSAC algorithm
  bestcandidates = [];
  bestInlierSet = zeros(0,2);
@@ -153,7 +159,7 @@ for k=1:n %number of candidate lines to try
     if biggestGap < 0.2  && sum(inliers) > size(bestInlierSet(:,1),1)
 %          if sum(inliers) > size(bestInlierSet,1)
         bestInlierSet=points(inliers,:); %points where logical array is true
-        bestOutlierSet = points(~inliers, :); %points where logical array is not true
+        bestOutlierSet = points(~inliers, :)'; %points where logical array is not true
         bestcandidates=candidates;
         
         %these two lines find a nice set of endpoints for plotting the best
@@ -162,7 +168,6 @@ for k=1:n %number of candidate lines to try
         bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1]);
     end
     
-
 end
     
 %Find the coefficients for the best line
