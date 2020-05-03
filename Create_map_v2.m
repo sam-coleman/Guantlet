@@ -145,11 +145,17 @@ for k=1:n %number of candidate lines to try
     %spacing between adjacent points. We then identify the maximum gap.
     biggestGap = max(diff(sort(diffs(inliers,:)*v/norm(v))));
     
+    %account for when biggestGap is not given value and then code fails
+    %since biggestGap = 1 !< .2, the next if statement will not run and
+    %best options will not be replaced
+    if isempty(biggestGap)
+        biggestGap = 1;
+    end
     %Now, we check if the number of inliers is greater than the best we
     %have found. If so, the candidate line is our new best candidate. We
     %also make sure there are no big gaps.
-    dummy = sum(inliers)
-    if biggestGap < 0.2  && dummy > size(bestInlierSet(:,1),1)
+
+    if biggestGap < 0.2  && sum(inliers) > size(bestInlierSet(:,1),1)
 %          if sum(inliers) > size(bestInlierSet,1)
         bestInlierSet=points(inliers,:); %points where logical array is true
         bestOutlierSet = points(~inliers, :); %points where logical array is not true
@@ -185,15 +191,14 @@ fitline_coefs=[m b];
 
 if visualize==1
 
-%plot the polar data as verification
-figure(2)
-plot(x,y,'ks')
-title('Scan Data- Clean')
-xlabel('[m]')
-ylabel('[m]')
+% figure(1)
+% plot(x,y,'ks')
+% title('Scan Data- Clean')
+% xlabel('[m]')
+% ylabel('[m]')
 
 %Now we need to plot our results
-figure(3)
+figure(1)
 plot(bestInlierSet(:,1), bestInlierSet(:,2), 'ks')
 hold on
 plot(bestOutlierSet(:,1),bestOutlierSet(:,2),'bs')
@@ -203,7 +208,7 @@ title(['RANSAC with d=' num2str(d) ' and n=' num2str(n)])
 xlabel('[m]')
 ylabel('[m]')
 % Create textbox
-annotation(figure(3),'textbox',...
+annotation(figure(1),'textbox',...
     [0.167071428571429 0.152380952380952 0.25 0.1],...
     'String',{'Number of Inliers:' num2str(size(bestInlierSet,1))},...
     'FitBoxToText','off');
