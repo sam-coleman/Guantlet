@@ -4,11 +4,7 @@ clear all
 
 load lidar_gauntlet.mat
 
-d = 0.1;
-n = 100;
-visualize = 1;
 
-%[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,0.1,20,1)
 
 index=find(r~=0 & r<3);
 r_clean=r(index);
@@ -37,11 +33,31 @@ r_G = r_G(1:2, :);
 x1 = r_G(1, :);
 y1 = r_G(2, :);
 points = [x1; y1];
+bestOutlierSet = points;
+nn = 1; 
+d = 0.005;
+n = 100;
+visualize = 1;
+%[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,0.1,20,1) 
+while size(bestOutlierSet,1) > 5
+    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(r,theta,d,n,visualize);
+    
+    if isnan(fitline_coefs(nn,1))
+        disp('All Lines Identified')
+        break;
+    end
+    
+    [theta_clean,r_clean]=cart2pol(bestOutlierSet(:,1),bestOutlierSet(:,2));
+    theta_clean=rad2deg(theta_clean);
+    
+    nn=nn+1;
+end
 
-% plot(x1,y1,'ks')
-% title('Converted')
-% hold off
+for kk=1:size(bestEndPoints,3)
+    plot(bestEndPoints(:,1,kk), bestEndPoints(:,2,kk), 'r')
+end
 
+function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(r, theta, d, n, visualize)
 %This function has been provided to us by course instructors  --------
 %function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,d,n,visualize)
 %The [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= robustLineFit(r,theta,d,n) 
@@ -103,7 +119,7 @@ for k=1:n %number of candidate lines to try
     while p1 == p2  %Make sure the two points are not randomly the same value
         p2 = randi([1 length(r_G)]);
     end
-    candidates = [x1(p1) x1(p2); y1(p1) y1(p2)];
+    candidates = [x(p1) x(p2); y(p1) y(p2)];
     
     %Find the vector that points from point 2 to point 1
     v=(candidates(1,:)-candidates(2,:))';
@@ -213,4 +229,5 @@ annotation(figure(1),'textbox',...
     'String',{'Number of Inliers:' num2str(size(bestInlierSet,1))},...
     'FitBoxToText','off');
 end
-%end
+end
+
