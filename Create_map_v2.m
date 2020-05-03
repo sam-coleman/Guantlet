@@ -34,27 +34,34 @@ x1 = r_G(1, :);
 y1 = r_G(2, :);
 points = [x1; y1];
 bestOutlierSet = points;
-nn = 1; 
+A = [1];
+B = [1];
+C = [1];
+Endpts = cat(3, A, B, C);
+nn = 1;
 d = 0.005;
 n = 100;
 visualize = 1;
-%[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,0.1,20,1) 
-while size(bestOutlierSet,1) > 5
-    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(r,theta,d,n,visualize);
-    
+%[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r_clean,theta_clean,0.1,20,1) 
+while size(bestOutlierSet(1,:),2) > 5
+    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(r_clean,theta_clean,d,n,visualize);
+    Endpts = bestEndPoints;
     if isnan(fitline_coefs(nn,1))
+       
         disp('All Lines Identified')
         break;
-    end
-    
+    end  
     [theta_clean,r_clean]=cart2pol(bestOutlierSet(:,1),bestOutlierSet(:,2));
     theta_clean=rad2deg(theta_clean);
     
     nn=nn+1;
+    size(bestOutlierSet(1,:),2)
 end
 
-for kk=1:size(bestEndPoints,3)
-    plot(bestEndPoints(:,1,kk), bestEndPoints(:,2,kk), 'r')
+for kk=1:size(Endpts,3)
+    plot(Endpts(:,1,kk), Endpts(:,2,kk), 'r')
+    xlim([-3,3])
+    ylim([-3,3])
 end
 
 function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(r, theta, d, n, visualize)
@@ -230,4 +237,3 @@ annotation(figure(1),'textbox',...
     'FitBoxToText','off');
 end
 end
-
