@@ -30,9 +30,9 @@ r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
 r_G = T_GN * R_GN * r_N_pos;
 r_G = r_G(1:2, :);
 
-x1 = r_G(1, :);
-y1 = r_G(2, :);
-points = [x1; y1];
+x = r_G(1, :);
+y = r_G(2, :);
+points = [x; y];
 bestOutlierSet = points;
 A = [1];
 B = [1];
@@ -44,7 +44,7 @@ n = 100;
 visualize = 1;
 %[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r_clean,theta_clean,0.1,20,1) 
 while size(bestOutlierSet(1,:),2) > 5
-    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(r_clean,theta_clean,d,n,visualize);
+    [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(x,y,d,n,visualize, r_G);
     Endpts = bestEndPoints;
     if isnan(fitline_coefs(nn,1))
        
@@ -64,7 +64,7 @@ for kk=1:size(Endpts,3)
     ylim([-3,3])
 end
 
-function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(r, theta, d, n, visualize)
+function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(x, y, d, n, visualize, r_G)
 %This function has been provided to us by course instructors  --------
 %function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r,theta,d,n,visualize)
 %The [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= robustLineFit(r,theta,d,n) 
@@ -78,34 +78,6 @@ function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(r, 
       visualize = 1;
  end
 
-%eliminate zeros
-index=find(r~=0 & r<3);
-r_clean=r(index);
-theta_clean=theta(index);
-
-%convert from Lidar frame to Global frame
-%location of objects with respect to LIDAR frame L
-%row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
-r_L = [r_clean(:,:).*cos(theta_clean(:,:)), r_clean(:,:).*sin(theta_clean(:,:))]';
-
-%location of objects with respect to Neato frame N
-%need to subtract .084 from rows 1-4 of r_L and keep rows 5-8 the same
-r_N = [r_L(:, :) - .084; r_L(:, :)];
-
-%Translation Matrix to go from Neato Frame to Global Frame
-T_GN = [1 0 0; 0 1 0; 0 0 1];
-    
-%Rotation Matrix to go from Neato Frame to Global Frame
-R_GN = [1 0 0; 0 1 0; 0 0 1];
-   
-%assign the position matrix to use and do the transformation to make
-%Neato Frame into Global Frame
-r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
-r_G = T_GN * R_GN * r_N_pos;
-r_G = r_G(1:2, :);
-
-x = r_G(1, :);
-y = r_G(2, :);
 points = [x; y];
 points = points';
 
