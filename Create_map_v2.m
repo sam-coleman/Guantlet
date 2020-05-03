@@ -38,13 +38,13 @@ C = [1];
 Endpts = cat(3, A, B, C);
 nn = 1;
 d = 0.005;
-n = 100;
+n = 1000;
 visualize = 1;
 timesRan = 0;
 %[fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints]= ransac(r_clean,theta_clean,0.1,20,1) 
 while size(bestOutlierSet(:,1),1) > 5 || size(bestOutlierSet(1, :),2) > 5
-    nn
     [fitline_coefs(nn,:),bestInlierSet,bestOutlierSet,bestEndPoints(:,:,nn)]= ransac(x,y,d,n,visualize, r_G, timesRan);
+    timesRan = timesRan + 1
     Endpts = bestEndPoints;
     if isnan(fitline_coefs(nn,1))
        
@@ -54,12 +54,12 @@ while size(bestOutlierSet(:,1),1) > 5 || size(bestOutlierSet(1, :),2) > 5
     [theta_clean,r_clean]=cart2pol(bestOutlierSet(:,1),bestOutlierSet(:,2));
     theta_clean=rad2deg(theta_clean);
     
-    nn=nn+1;
-    timesRan = timesRan + 1;
-    size(bestOutlierSet(:,1),1)
+    nn=nn+1
+
+    size(bestOutlierSet(:,1),1);
     
-   x = x - bestInlierSet(:,1);
-   y = y - bestInlierSet(:,2);
+   x = x(1,:) - bestInlierSet(:,1);
+   y = y(1,:) - bestInlierSet(:,2);
 end
 
 for kk=1:size(Endpts,3)
@@ -82,12 +82,19 @@ function [fitline_coefs,bestInlierSet,bestOutlierSet,bestEndPoints] = ransac(x, 
       visualize = 1;
  end
 
+if timesRan==0
+    points = [x; y];
+else
+    points = [x(:,1) y(:,1)];
+end
 
-points = [x; y];
 
 if timesRan == 0
 points = points';
 end
+
+size(points)
+
 %now let's actually implement the RANSAC algorithm
  bestcandidates = [];
  bestInlierSet = zeros(0,2);
@@ -171,9 +178,8 @@ for k=1:n %number of candidate lines to try
 end
     
 %Find the coefficients for the best line
-m=diff(bestEndPoints(:,2))/diff(bestEndPoints(:,1));
-b=bestEndPoints(1,2)-m*bestEndPoints(1,1);
-fitline_coefs=[m b];
+m=diff(bestEndPoints(:,2))/diff(bestEndPoints(:,1))
+
 
 
 if isempty(bestEndPoints)
@@ -184,6 +190,11 @@ if isempty(bestEndPoints)
     return;
 end
     
+if isempty(m)
+    m=1;
+end
+b=bestEndPoints(1,2)-m*(bestEndPoints(1,1))
+fitline_coefs=[m b];
 %Find the coefficients for the best line
 m=diff(bestEndPoints(:,2))/diff(bestEndPoints(:,1));
 b=bestEndPoints(1,2)-m*bestEndPoints(1,1);
