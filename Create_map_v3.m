@@ -80,6 +80,25 @@ end
 
 %END OF FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-projectedCoordinate = dists(bestin(:),:)*v/norm(v);
-bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1])
+in_ranget = in_range';
+x_inrange = x(1, in_ranget(1,:));
+y_inrange = y(1, in_ranget(1,:));
+points_inrange = [x_inrange; y_inrange];
+%find the endpoints
+least_x = min(x_inrange);
+greatest_x = max(x_inrange);
+least_y = min(y_inrange);
+greatest_y = max(y_inrange);
+
+% if greatest_y - least_y > greatest_x - least_x
+% % endpt1: want index of greatest_y in matrix y_inrange. With that index,
+% % that coordinate (x,y) is endpt1
+% %endpt2: same as above but with least_y
+% 
+% else
+% %same as but with x instead of y
+% end
+
+%projectedCoordinate = dists(bestin(:),:)*v/norm(v);
+%bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1])
     
