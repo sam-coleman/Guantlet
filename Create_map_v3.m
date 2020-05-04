@@ -48,12 +48,8 @@ xlabel('[m]')
 ylabel('[m]')
 hold off
 
-% figure()
-% hold on
-% plot(x,y,'ks')
-% plot(endpts(1,:), endpts(2,:))
-% hold off
-
+%save all_m, all_b and all_endpts to a mat file
+%save('ransac_data.mat', 'all_m', 'all_b', 'all_endpts')
 
 function[x,y,endpts, m, b] = ransac(x, y, n, d)
     %Defining arrays to hold indicies of BEST inliers and outliers
