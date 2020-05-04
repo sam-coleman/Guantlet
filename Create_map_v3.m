@@ -31,20 +31,30 @@ r_G = r_G(1:2, :);
 x = r_G(1, :);  %Global x and y
 y = r_G(2, :);
 
-points = [x;y];  %Creating matrix of global x and y values
+
+
+[bestin, bestout, endpts, m, b] = ransac(x,y,1000,.005);
+
+figure()
+hold on
+plot(x,y,'ks')
+plot(endpts(1,:), endpts(2,:))
+hold off
+
+
+function[bestin, bestout, endpts, m, b] = ransac(x, y, n, d)
 
 %Defining arrays to hold indicies of BEST inliers and outliers
 bestin = zeros(1);
 bestout = zeros(1);
+points = [x;y];  %Creating matrix of global x and y values
 
-n = 1000;
-d = .005;
 for i=1:n
 %Finding random indicies
-p1 = randi([1 length(r_G)]);
-p2 = randi([1 length(r_G)]);
+p1 = randi([1 length(x)]);
+p2 = randi([1 length(x)]);
 while p1 == p2  %Make sure the two points are not randomly the same value
-    p2 = randi([1 length(r_G)]);
+    p2 = randi([1 length(x)]);
 end
 candidates = [x(p1) x(p2); y(p1) y(p2)];  %x and y values at random indicies
 
@@ -77,7 +87,6 @@ if length(in_range(:,1)) > length(bestin(:,1))
     bestout = out_range;
 end
 end
-%END OF FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 in_ranget = bestin';
 x_inrange = x(1, in_ranget(1,:));
@@ -110,12 +119,4 @@ endpts = [endpt1 endpt2];
 coefficients = polyfit([x1, x2], [y1, y2], 1);
 m = coefficients(1);
 b = coefficients(2);
-
-figure()
-hold on
-plot(x,y,'ks')
-plot(endpts(1,:), endpts(2,:))
-hold off
-%projectedCoordinate = dists(bestin(:),:)*v/norm(v);
-%bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1])
-    
+end
