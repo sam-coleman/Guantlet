@@ -37,8 +37,9 @@ points = [x;y];  %Creating matrix of global x and y values
 bestin = zeros(1);
 bestout = zeros(1);
 
-%START THE FOR LOOP HERE!!!!!!!!!!!!!!!!!!!!!!!!!
-
+n = 1000;
+d = .005;
+for i=1:n
 %Finding random indicies
 p1 = randi([1 length(r_G)]);
 p2 = randi([1 length(r_G)]);
@@ -59,46 +60,62 @@ vorth = [-v(2,1);v(1,1)];
 
 %Distance between all of our points and one of our random candidate points
 dists = points - candidates(:,1);
-d=0.005;
 
-orth_dists = dists'*vorth;
+orth_dists = abs(dists'*vorth);
 
 % quiver(candidates(1,:),candidates(2,:),v(1,1),v(2,1))
 
 %Finding points that are in and out of range
+%thse are the INDICES
 in_range=find(orth_dists<d);
 out_range=find(orth_dists>d);
 % in=points(in_range)
 % out=points(out_range)
 
-length(in_range(:,1))
-length(bestin(:,1))
 if length(in_range(:,1)) > length(bestin(:,1))
     bestin = in_range;
     bestout = out_range;
 end
-
+end
 %END OF FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-in_ranget = in_range';
+in_ranget = bestin';
 x_inrange = x(1, in_ranget(1,:));
 y_inrange = y(1, in_ranget(1,:));
 points_inrange = [x_inrange; y_inrange];
-%find the endpoints
-least_x = min(x_inrange);
-greatest_x = max(x_inrange);
-least_y = min(y_inrange);
-greatest_y = max(y_inrange);
+%find the endpoints and their indices
+[least_x, least_x_index] = min(x_inrange);
+[greatest_x, greatest_x_index] = max(x_inrange);
+[least_y, least_y_index] = min(y_inrange);
+[greatest_y, greatest_y_index] = max(y_inrange);
 
-% if greatest_y - least_y > greatest_x - least_x
-% % endpt1: want index of greatest_y in matrix y_inrange. With that index,
-% % that coordinate (x,y) is endpt1
-% %endpt2: same as above but with least_y
-% 
-% else
-% %same as but with x instead of y
-% end
+if greatest_y - least_y > greatest_x - least_x
+x1 = x_inrange(greatest_y_index);
+y1 = y_inrange(greatest_y_index);
+endpt1 = [x1; y1];
+x2 = x_inrange(least_y_index);
+y2 = y_inrange(least_y_index);
+endpt2 = [x2; y2];
+else
+x1 = x_inrange(greatest_x_index);
+y1 = y_inrange(greatest_x_index);
+endpt1 = [x1; y1];
+x2 = x_inrange(least_x_index);
+y2 = y_inrange(least_x_index);
+endpt2 = [x2; y2];
+end
 
+endpts = [endpt1 endpt2];
+
+coefficients = polyfit([x1, x2], [y1, y2], 1);
+m = coefficients(1);
+b = coefficients(2);
+
+figure()
+hold on
+plot(x,y,'ks')
+plot(endpts(1,:), endpts(2,:))
+hold off
 %projectedCoordinate = dists(bestin(:),:)*v/norm(v);
 %bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1])
     
