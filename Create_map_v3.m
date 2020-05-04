@@ -33,7 +33,11 @@ y = r_G(2, :);
 
 points = [x;y];  %Creating matrix of global x and y values
 
-%START THE FOR LOOP HERE!!!!!!!!!!!!!!!
+%Defining arrays to hold indicies of BEST inliers and outliers
+bestin = zeros(1);
+bestout = zeros(1);
+
+%START THE FOR LOOP HERE!!!!!!!!!!!!!!!!!!!!!!!!!
 
 %Finding random indicies
 p1 = randi([1 length(r_G)]);
@@ -43,12 +47,9 @@ while p1 == p2  %Make sure the two points are not randomly the same value
 end
 candidates = [x(p1) x(p2); y(p1) y(p2)];  %x and y values at random indicies
 
-%Defining arrays to hold indicies of inliers, outliers, and the best
-%options
+%Defining arrays to hold indicies of inliers and outliers
 in = zeros(1);
 out = zeros(1);
-bestin = zeros(1);
-bestout = zeros(1);
 
 %Unit vector in direction between two points
 v = (candidates(:,1) - candidates(:,2))/(norm(candidates(:,1) - candidates(:,2)));
@@ -57,16 +58,28 @@ v = (candidates(:,1) - candidates(:,2))/(norm(candidates(:,1) - candidates(:,2))
 vorth = [-v(2,1);v(1,1)];
 
 %Distance between all of our points and one of our random candidate points
-dist = points - candidates(:,1);
+dists = points - candidates(:,1);
 d=0.005;
 
-orth_dist = dist'*vorth;
+orth_dists = dists'*vorth;
 
 % quiver(candidates(1,:),candidates(2,:),v(1,1),v(2,1))
 
 %Finding points that are in and out of range
-in_range=find(orth_dist<d);
-out_range=find(orth_dist>d);
+in_range=find(orth_dists<d);
+out_range=find(orth_dists>d);
 % in=points(in_range)
 % out=points(out_range)
 
+length(in_range(:,1))
+length(bestin(:,1))
+if length(in_range(:,1)) > length(bestin(:,1))
+    bestin = in_range;
+    bestout = out_range;
+end
+
+%END OF FOR LOOP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+projectedCoordinate = dists(bestin(:),:)*v/norm(v);
+bestEndPoints = [min(projectedCoordinate); max(projectedCoordinate)]*v'/norm(v) + repmat(candidates(2, :), [2, 1])
+    
