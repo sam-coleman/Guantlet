@@ -104,6 +104,7 @@ while n < 12
         end
     end
     v_sink_scaled = v_sink ./ num_points;
+    %v_sink_scaled = v_sink_scaled .* 10;
     v_all = v_all + v_sink_scaled; %update the combination of all v_source_all
     %v_all_source = [v_all_source v_source];
 
