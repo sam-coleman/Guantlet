@@ -74,43 +74,46 @@ while n<9
     n = n+1;
 end
 n = 9;
-while n < 12
- %reset v_source for each line
-    v_sink = 0;
-    num_points = 0;
-    %if statement determines which endpoint is further left (we iterate
-    %left to right based on x values)
-    if all_endpts(n,1) > all_endpts(n,2)
-        %for loop creates line of evenly spaced sources for each ransac
-        %line
-        for a = all_endpts(n,2):0.001:all_endpts(n,1)
-            a; %unsurpress to see it iterating
-            y_int = all_m(1,n)*a + all_m(1,n); %find corresponding y value for each x
-            v_sink = v_sink + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
-            gx_sink = gx_sink+((x-a)./((x-a).^2 + (y-y_int).^2)); %gradient vector in ihat dir
-            gy_sink = gy_sink+((y-y_int)./((x-a).^2 + (y-y_int).^2)); %gradient vector in jhat dir
-            %v_sym = -log(sqrt((x_sym-a).^2 + (y_sym-y_int).^2));
-            num_points = num_points + 1;
-        end
-    else
-        for a = all_endpts(n,1):0.001:all_endpts(n,2)
-            a;
-            y_int = all_m(1,n)*a + all_m(1,n);
-            v_sink = v_sink + log(sqrt((x-a).^2 + (y-y_int).^2));
-            gx_sink = gx_sink+((x-a)./((x-a).^2 + (y-y_int).^2));
-            gy_sink = gy_sink+((y-y_int)./((x-a).^2 + (y-y_int).^2));
-            %v_sym = -log(sqrt((x_sym-a).^2 + (y_sym-y_int).^2));
-            num_points = num_points + 1;
-        end
-    end
-    v_sink_scaled = v_sink ./ num_points;
-    %v_sink_scaled = v_sink_scaled .* 10;
-    v_all = v_all + v_sink_scaled; %update the combination of all v_source_all
-    %v_all_source = [v_all_source v_source];
+% while n < 12
+%  %reset v_source for each line
+%     v_sink = 0;
+%     num_points = 0;
+%     %if statement determines which endpoint is further left (we iterate
+%     %left to right based on x values)
+%     if all_endpts(n,1) > all_endpts(n,2)
+%         %for loop creates line of evenly spaced sources for each ransac
+%         %line
+%         for a = all_endpts(n,2):0.001:all_endpts(n,1)
+%             a; %unsurpress to see it iterating
+%             y_int = all_m(1,n)*a + all_m(1,n); %find corresponding y value for each x
+%             v_sink = v_sink + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+%             gx_sink = gx_sink+((x-a)./((x-a).^2 + (y-y_int).^2)); %gradient vector in ihat dir
+%             gy_sink = gy_sink+((y-y_int)./((x-a).^2 + (y-y_int).^2)); %gradient vector in jhat dir
+%             %v_sym = -log(sqrt((x_sym-a).^2 + (y_sym-y_int).^2));
+%             num_points = num_points + 1;
+%         end
+%     else
+%         for a = all_endpts(n,1):0.001:all_endpts(n,2)
+%             a;
+%             y_int = all_m(1,n)*a + all_m(1,n);
+%             v_sink = v_sink + log(sqrt((x-a).^2 + (y-y_int).^2));
+%             gx_sink = gx_sink+((x-a)./((x-a).^2 + (y-y_int).^2));
+%             gy_sink = gy_sink+((y-y_int)./((x-a).^2 + (y-y_int).^2));
+%             %v_sym = -log(sqrt((x_sym-a).^2 + (y_sym-y_int).^2));
+%             num_points = num_points + 1;
+%         end
+%     end
+%     v_sink_scaled = v_sink ./ num_points;
+%     %v_sink_scaled = v_sink_scaled .* 10;
+%     v_all = v_all + v_sink_scaled; %update the combination of all v_source_all
+%     %v_all_source = [v_all_source v_source];
+% 
+%     %v_all = [v_all, v_sym];
+%     n = n+1;    
+% end
 
-    %v_all = [v_all, v_sym];
-    n = n+1;    
-end
+%middle line of ransac is index 10
+
 
 %v_all_simple = simplify(v_all);
 %v_values = double(subs(v_all_simple,[x_sym,y_sym],[x_array,y_array]));
