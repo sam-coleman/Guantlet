@@ -113,8 +113,12 @@ n = 9;
 % end
 
 %middle line of ransac is index 10
-
-
+%take endpoint of index 10 and use that for the sink equation
+%plot sink equation
+sink_x = all_endpts(10,2);
+sink_y = all_endpts(10,4);
+sink_eq = log(sqrt((x-sink_x).^2 + (y-sink_y).^2));
+v_all = v_all + sink_eq;
 %v_all_simple = simplify(v_all);
 %v_values = double(subs(v_all_simple,[x_sym,y_sym],[x_array,y_array]));
 
