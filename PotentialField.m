@@ -1,7 +1,7 @@
 %This file takes our ransac_data.mat file from create_map_v3
 %uses ransac lines to create potential field map
 
-clf
+%clf
 clc
 clear all
 
@@ -20,7 +20,7 @@ yint_sink = all_b(1,9:11);
 %v = ln(sqrt((x-2)^2+y^2)
 
 v_all = [];
-v_all_source = [];
+v_all_source = 0;
 
 [x,y]=meshgrid(-1.5:0.05:2.5,-3.5:0.05:1);  %Overall area of gauntlet
 x_array = -1.5:0.05:2.5;
@@ -36,9 +36,10 @@ syms x_sym y_sym
 figure
 hold on
 while n<9
+    v_source = 0;
 if all_endpts(n,1) > all_endpts(n,2)
     for a = all_endpts(n,2):0.001:all_endpts(n,1)
-        a
+        a;
         y_int = m_source(1,n)*a + yint_source(1,n);
         v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2));
         gx_source = gx_source-((x-a)./((x-a).^2 + (y-y_int).^2));
@@ -47,7 +48,7 @@ if all_endpts(n,1) > all_endpts(n,2)
     end
 else
     for a = all_endpts(n,1):0.001:all_endpts(n,2)
-        a
+        a;
         y_int = m_source(1,n)*a + yint_source(1,n);
         v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2));
         gx_source = gx_source-((x-a)./((x-a).^2 + (y-y_int).^2));
@@ -55,7 +56,27 @@ else
         %v_sym = -log(sqrt((x_sym-a).^2 + (y_sym-y_int).^2));
     end
 end
-v_all_source = [v_all_source v_source];
+%scale everything so same order of mag
+% max_val = max(v_source);
+% v_source_scaled = v_source ./ (max_val/4);
+mean2(v_source)
+if abs(mean2(v_source)) < 10
+    v_source_scaled = v_source .* 1000;
+elseif abs(mean2(v_source)) < 100
+    v_source_scaled = v_source .* 10;
+elseif abs(mean2(v_source)) > 1000
+    v_source_scaled = v_source ./ 10;
+elseif abs(mean2(v_source)) > 10000
+    v_source_scaled = v_source ./ 100;
+elseif abs(mean2(v_source)) > 100000
+    v_source_scaled = v_source ./ 1000;
+else
+    v_source_scaled = v_source;
+end
+mean2(v_source_scaled)
+v_all_source = v_all_source + v_source_scaled;
+%v_all_source = [v_all_source v_source];
+
 %v_all = [v_all, v_sym];
 n = n+1;
 end
