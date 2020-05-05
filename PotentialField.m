@@ -1,3 +1,6 @@
+%This file takes our ransac_data.mat file from create_map_v3
+%uses ransac lines to create potential field map
+
 clf
 clc
 clear all
@@ -20,9 +23,6 @@ yint_sink = all_b(1,9:11);
 v_source = 0;
 gx_source=0;
 gy_source=0;
-
-
-
 
 if all_endpts(1,1) > all_endpts(1,2)
     for a = all_endpts(1,2):0.001:all_endpts(1,1)

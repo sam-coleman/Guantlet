@@ -1,38 +1,23 @@
+%This file takes in the raw lidar values
+%converts to global frame and runs RANSAC algorithm to approximate lines of
+%barriers and BoB
+
 clc
 clf
 clear all
 
 load lidar_gauntlet.mat
 
-index=find(r~=0 & r<3);
-r_clean=r(index);
-theta_clean=theta(index);
-
-%location of objects with respect to LIDAR frame L
-%row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
-r_L = [r_clean(:,:).*cos(theta_clean(:,:)), r_clean(:,:).*sin(theta_clean(:,:))]';
-
-%location of objects with respect to Neato frame N
-%need to subtract .084 from rows 1-4 of r_L and keep rows 5-8 the same
-r_N = [r_L(:, :) - .084; r_L(:, :)];
-
-%Translation Matrix to go from Neato Frame to Global Frame
-T_GN = [1 0 0; 0 1 0; 0 0 1];
-    
-%Rotation Matrix to go from Neato Frame to Global Frame
-R_GN = [1 0 0; 0 1 0; 0 0 1];
-   
-%assign the position matrix to use and do the transformation to make
-%Neato Frame into Global Frame
-r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
-r_G = T_GN * R_GN * r_N_pos;
-r_G = r_G(1:2, :);
-
-x = r_G(1, :);  %Global x and y
-y = r_G(2, :);
+%initialize global values
+x = [];
+y = [];
 all_endpts = [];
 all_m = [];
 all_b = [];
+
+%convert r, theta to global frame
+[x, y] = convert_to_global(r, theta);
+
 figure()
 hold on
 for i = 1:11
@@ -49,9 +34,60 @@ ylabel('[m]')
 hold off
 
 %save all_m, all_b and all_endpts to a mat file
+%keep following line commented out unless you want to update data
 %save('ransac_data.mat', 'all_m', 'all_b', 'all_endpts')
 
+function [x,y] = convert_to_global(r, theta)
+%   Converts raw r, theta into x and y values
+%   args
+%     r is raw radius from lidar
+%     theta is raw theta from lidar
+%   returns
+%     x is global x values
+%     y is global y values
+    index=find(r~=0 & r<3);
+    r_clean=r(index);
+    theta_clean=theta(index);
+
+    %location of objects with respect to LIDAR frame L
+    %row 1 goes with row 5, 2 with 6, 3 with 7, 4 with 8
+    r_L = [r_clean(:,:).*cos(theta_clean(:,:)), r_clean(:,:).*sin(theta_clean(:,:))]';
+
+    %location of objects with respect to Neato frame N
+    %need to subtract .084 from rows 1-4 of r_L and keep rows 5-8 the same
+    r_N = [r_L(:, :) - .084; r_L(:, :)];
+
+    %Translation Matrix to go from Neato Frame to Global Frame
+    T_GN = [1 0 0; 0 1 0; 0 0 1];
+
+    %Rotation Matrix to go from Neato Frame to Global Frame
+    R_GN = [1 0 0; 0 1 0; 0 0 1];
+
+    %assign the position matrix to use and do the transformation to make
+    %Neato Frame into Global Frame
+    r_N_pos = [r_N(1, :); r_N(2, :); ones(1, length(r_clean))];
+    r_G = T_GN * R_GN * r_N_pos;
+    r_G = r_G(1:2, :);
+
+    x = r_G(1, :); 
+    y = r_G(2, :);
+end
+
 function[x,y,endpts, m, b] = ransac(x, y, n, d)
+%   Runs ransac algorithm to find best fit line 
+%   args:
+%       x is matrix of remaining x vals (in global frame)
+%       y is matrix of remaining y vals (in global frame)
+%       n is number of iterations
+%       d is range to define inliers
+%     
+%   returns:
+%       x is updated matrix of x vals (with most recent inliers removed)
+%       y is updated matrix of y vals (with most recent inliers removed)
+%       endpoints is matrix containing the endpoints for the line
+%       m is slope of line
+%       b is y-intercept of line
+    
     %Defining arrays to hold indicies of BEST inliers and outliers
     bestin = zeros(1);
     bestout = zeros(1);
@@ -81,15 +117,13 @@ function[x,y,endpts, m, b] = ransac(x, y, n, d)
 
     orth_dists = abs(dists'*vorth);
 
-    % quiver(candidates(1,:),candidates(2,:),v(1,1),v(2,1))
-
     %Finding points that are in and out of range
     %thse are the INDICES
     in_range=find(orth_dists<d);
     out_range=find(orth_dists>d);
-    % in=points(in_range)
-    % out=points(out_range)
-
+    
+    %update bestin and bestout if the current line is better than the
+    %previous best line
     if length(in_range(:,1)) > length(bestin(:,1))
         bestin = in_range;
         bestout = out_range;
