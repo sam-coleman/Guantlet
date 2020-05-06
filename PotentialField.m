@@ -32,12 +32,11 @@ gx_sink = 0;
 gy_sink = 0;
 gx_source_all = 0;
 gy_source_all = 0;
-n = 1;
 
 syms x_sym y_sym
 
-figure
-hold on
+%figure
+%hold on
 %iterate through our 9 source lines
 n=1;
 while n<9
@@ -128,10 +127,29 @@ end
 sink_x = all_endpts(10,2);
 sink_y = all_endpts(10,4);
 sink_eq = log(sqrt((x-sink_x).^2 + (y-sink_y).^2));
+sink_eq2 = sink_eq .* 2.5;
+v_all2 = v_all + sink_eq2;
 v_all = v_all + sink_eq;
+
 gx_sink= (x-sink_x)./((x-sink_x).^2 + (y-sink_y).^2);
 gy_sink =(y-sink_y)./((x-sink_x).^2 + (y-sink_y).^2);
 
-contour(x,y,v_all,'k','ShowText','On')
-axis equal
-hold off
+gx_all = gx_source_all + gx_sink;
+gy_all = gy_source_all + gy_sink;
+
+%contour(x,y,v_all,'k','ShowText','On')
+%axis equal
+%hold off
+
+%Plots with BoB having a weighting
+figure()
+contour(x,y,v_all2,'k','ShowText','On')
+title('Potential field')
+xlabel('[m]')
+ylabel('[m]')
+
+figure()
+quiver(x,y,-gx_all,-gy_all,3)
+title('Quiver Plot')
+xlabel('[m]')
+ylabel('[m]')
