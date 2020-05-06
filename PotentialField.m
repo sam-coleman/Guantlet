@@ -55,6 +55,12 @@ while n<9
             for a = all_endpts(n,2):0.001:all_endpts(n,1)
                 a; %unsurpress to see it iterating
                 y_int = m_source(1,n)*a + yint_source(1,n); %find corresponding y value for each x
+                log_val = log(sqrt((x-a).^2 + (y-y_int).^2));
+                if log_val < 1
+                    v_source = v_source + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                else
+                    v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                end
                 v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
                 gx_source = gx_source-((x-a)./((x-a).^2 + (y-y_int).^2)); %gradient vector in ihat dir
                 gy_source = gy_source-((y-y_int)./((x-a).^2 + (y-y_int).^2)); %gradient vector in jhat dir
@@ -65,6 +71,12 @@ while n<9
             for a = all_endpts(n,1):0.001:all_endpts(n,2)
                 a;
                 y_int = m_source(1,n)*a + yint_source(1,n);
+                log_val = log(sqrt((x-a).^2 + (y-y_int).^2));
+                if log_val < 1
+                    v_source = v_source + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                else
+                    v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                end
                 v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2));
                 gx_source = gx_source-((x-a)./((x-a).^2 + (y-y_int).^2));
                 gy_source = gy_source-((y-y_int)./((x-a).^2 + (y-y_int).^2));
@@ -78,6 +90,12 @@ while n<9
             for a = all_endpts(n,4):0.001:all_endpts(n,3)
                 a; %unsurpress to see it iterating
                 x_int = (a-all_b(1,n))./all_m(1,n);
+                log_val = log(sqrt((x-a).^2 + (y-y_int).^2));
+                if log_val < 1
+                    v_source = v_source + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                else
+                    v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                end
                 v_source = v_source - log(sqrt((x-x_int).^2 + (y-a).^2)); %add sources
                 gx_source = gx_source-((x-x_int)./((x-x_int).^2 + (y-a).^2)); %gradient vector in ihat dir
                 gy_source = gy_source-((y-a)./((x-x_int).^2 + (y-a).^2)); %gradient vector in jhat dir
@@ -87,6 +105,12 @@ while n<9
             for a = all_endpts(n,3):0.001:all_endpts(n,4)
                 a;
                 x_int = (a-all_b(1,n))./all_m(1,n);
+                log_val = log(sqrt((x-a).^2 + (y-y_int).^2));
+                if log_val < 1
+                    v_source = v_source + log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                else
+                    v_source = v_source - log(sqrt((x-a).^2 + (y-y_int).^2)); %add sources
+                end
                 v_source = v_source - log(sqrt((x-x_int).^2 + (y-a).^2)); %add sources
                 gx_source = gx_source-((x-x_int)./((x-x_int).^2 + (y-a).^2)); %gradient vector in ihat dir
                 gy_source = gy_source-((y-a)./((x-x_int).^2 + (y-a).^2)); %gradient vector in jhat dir
